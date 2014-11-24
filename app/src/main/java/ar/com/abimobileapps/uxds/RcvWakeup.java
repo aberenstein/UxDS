@@ -13,6 +13,5 @@ public class RcvWakeup extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         context.startService(new Intent(context, SvcContents.class));
-        context.startService(new Intent(context, SvcNotification.class));
     }
 }
