@@ -10,6 +10,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -51,7 +52,7 @@ public class Contents {
         XmlPullParser parser = Xml.newPullParser();
 
         try {
-            File applicationDir = Globals.getApplicationDir(callingActivity);
+            File applicationDir = Globals.appDir(callingActivity);
             File items = new File(applicationDir, "items.xml");
             InputStream is = new FileInputStream(items.getAbsoluteFile());
 
@@ -61,7 +62,10 @@ public class Contents {
                 switch (eventType) {
                     case XmlPullParser.START_TAG:
                         if (parser.getName().equalsIgnoreCase("item")) {
-                            ContentsItem item = new ContentsItem(parser.getAttributeValue(0), parser.getAttributeValue(1));
+                            String id = parser.getAttributeValue(0);
+                            String contents = parser.getAttributeValue(1);
+                            boolean isItemNew = isItemNew(id);
+                            ContentsItem item = new ContentsItem(id, contents, isItemNew);
                             addItem(item);
                         }
                         break;
@@ -96,10 +100,12 @@ public class Contents {
     public class ContentsItem {
         public String id;
         public String contents;
+        public boolean flag;
 
-        public ContentsItem(String id, String contents) {
+        public ContentsItem(String id, String contents, boolean flag) {
             this.id = id;
             this.contents = contents;
+            this.flag = flag;
         }
 
         @Override
@@ -108,33 +114,47 @@ public class Contents {
         }
     }
 
-    public class ContentsMeta {
+    public static class ContentsMeta {
+        private enum ContentsType { ITEM, SECTION, RESOURCE }
+
         public String id;
         public String item;
         public int size;
-        public boolean isItem;
-        public boolean isSection;
+        public ContentsType type;
+        public boolean isNew;
 
-        public ContentsMeta(String id, int size, boolean isItem, boolean isSection) {
+        // Item
+        public ContentsMeta(String id, int size, boolean isNew) {
             this.id = id;
             this.item = null;
             this.size = size;
-            this.isItem = isItem;
-            this.isSection = isSection;
+            this.type = ContentsType.ITEM;
+            this.isNew = isNew;
         }
 
-        public ContentsMeta(String id, String item, int size, boolean isItem, boolean isSection) {
+        // Section
+        public ContentsMeta(String id, String item, int size) {
             this.id = id;
             this.item = item;
             this.size = size;
-            this.isItem = isItem;
-            this.isSection = isSection;
+            this.type = ContentsType.SECTION;
+            this.isNew = false;
         }
+
+        // Resource
+        public ContentsMeta(String id, int size) {
+            this.id = id;
+            this.item = null;
+            this.size = size;
+            this.type = ContentsType.RESOURCE;
+            this.isNew = false;
+        }
+
     }
 
     public void initialize(Activity callingActivity) throws IOException {
         // Verifico si existe fs y si no lo creo
-        fsSetup(callingActivity);
+        fsSetup();
 
         // Setup alarmas
         RcvrBootComplete rcvr = new RcvrBootComplete();
@@ -144,8 +164,8 @@ public class Contents {
 
     }
 
-    private void fsSetup(Activity callingActivity) throws IOException {
-        File applicationDir = Globals.getApplicationDir(callingActivity);
+    private void fsSetup() throws IOException {
+        File applicationDir = Globals.appDir();
 
         try {
             // Verifico si hay fs en internal storage
@@ -160,22 +180,22 @@ public class Contents {
         }
 
         // 1.- Creo el subdirectorio tmp
-        File tmpDir = Globals.getTmpDir(callingActivity);
+        File tmpDir = Globals.tmpDir();
         if(tmpDir.exists()) {
             Utils.rmDir(tmpDir);
         }
         if (!tmpDir.mkdir()) throw new IOException("No se pudo crear directorio en internal storage");
 
         // 2.- Copio el directorio assets en tmpDir
-        copyAssets(callingActivity);
+        copyAssets();
 
         // 3.- Expando el directorio tmpDir en applicationDir
         fsUpdate(applicationDir, tmpDir);
     }
 
-    private void copyAssets(Activity callingActivity) throws IOException {
-        File destDir = Globals.getTmpDir(callingActivity);
-        AssetManager am = callingActivity.getResources().getAssets();
+    private void copyAssets() throws IOException {
+        File destDir = Globals.tmpDir();
+        AssetManager am = Globals.assetManager();
         String[] fileList = am.list("");
 
         for(String filename : fileList) {
@@ -217,6 +237,30 @@ public class Contents {
     }
 
     /**
+     * A partir item id devuelve si está señalado como nuevo o no
+     */
+    private boolean isItemNew(String id) {
+        File applicationDir = Globals.appDir();
+
+        File[] fileList = applicationDir.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                boolean isFile = file.isFile();
+                boolean hasSentryExtension = Utils.getExtension(file.getAbsolutePath()).equalsIgnoreCase(Globals.getSentryExtension());
+                return isFile && hasSentryExtension;
+            }
+        });
+
+        for (File file: fileList) {
+            if (Utils.getFilename(file.getAbsolutePath()).equalsIgnoreCase(id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * A partir del nombre del archivo se obtiene el id de sección y de ahí, mediante items.xml, se
      * obtiene el id del item que lo invoca.
      */
@@ -228,7 +272,7 @@ public class Contents {
 
         for (String id: contents.keySet()) {
             ContentsMeta meta = contents.get(id);
-            if (id.equalsIgnoreCase(sectionId) && meta.isSection) {
+            if (id.equalsIgnoreCase(sectionId) && meta.type == ContentsMeta.ContentsType.SECTION) {
                 return meta.item;
             }
         }
@@ -287,20 +331,20 @@ public class Contents {
                     if (parser.getName().equalsIgnoreCase("item")) {
                         String id = parser.getAttributeValue(0);
                         int size = Integer.parseInt(parser.getAttributeValue(2));
-                        ContentsMeta itemMeta = new ContentsMeta(id, size, true, false);
+                        ContentsMeta itemMeta = new ContentsMeta(id, size, isItemNew(id));
                         contentsMeta.put(id, itemMeta);
                     }
                     else if (parser.getName().equalsIgnoreCase("section")) {
                         String id = parser.getAttributeValue(0);
                         String item = parser.getAttributeValue(1);
                         int size = Integer.parseInt(parser.getAttributeValue(2));
-                        ContentsMeta itemMeta = new ContentsMeta(id, item, size, false, true);
+                        ContentsMeta itemMeta = new ContentsMeta(id, item, size);
                         contentsMeta.put(id, itemMeta);
                     }
                     else if (parser.getName().equalsIgnoreCase("resource")) {
                         String id = parser.getAttributeValue(0);
                         int size = Integer.parseInt(parser.getAttributeValue(1));
-                        ContentsMeta itemMeta = new ContentsMeta(id, size, false, false);
+                        ContentsMeta itemMeta = new ContentsMeta(id, size);
                         contentsMeta.put(id, itemMeta);
                     }
                     break;
@@ -316,11 +360,11 @@ public class Contents {
     public void getContentsFromServer(String url, SvcContents svc) {
 
         DownloadTask downloadTask = new DownloadTask(svc);
-        downloadTask.execute(Globals.getApplicationDir(svc).getAbsolutePath(),
-                             Globals.getTmpDir(svc).getAbsolutePath(),
+        downloadTask.execute(Globals.appDir(svc).getAbsolutePath(),
+                             Globals.tmpDir(svc).getAbsolutePath(),
                              url,
-                             Globals.getAppId(svc),
-                             Globals.getIMEI(svc));
+                             Globals.appId(),
+                             Globals.deviceId());
     }
 
     // Uses AsyncTask to create a task away from the main UI thread. This task takes a
@@ -339,6 +383,11 @@ public class Contents {
         protected void onPostExecute(Boolean newData) {
             if (newData) {
                 svc.doNotify();
+
+                if (Utils.isActivityRunning(ItemListActivity.class, svc)) {
+                    // TODO: invocar ItemListFragment.setupFragment para refrescar pantalla si esta activa y hubo nueva data
+                    //http://stackoverflow.com/questions/3873659/android-how-can-i-get-the-current-foreground-activity-from-a-service
+                }
             }
         }
 
@@ -362,10 +411,10 @@ public class Contents {
                     Log.d("UxDS", "Itero sobre filesToDownload");
                     for (String id : filesToDownload.keySet()) {
                         String file;
-                        if (filesToDownload.get(id).isItem) {
+                        if (filesToDownload.get(id).type == ContentsMeta.ContentsType.ITEM) {
                             file = id + ".html";
                         }
-                        else if (filesToDownload.get(id).isSection) {
+                        else if (filesToDownload.get(id).type == ContentsMeta.ContentsType.SECTION) {
                             file = id + ".zip";
                         }
                         else {
@@ -397,13 +446,13 @@ public class Contents {
                     Log.d("UxDS", "Itero sobre filesToDelete");
                     for (String id : filesToDelete.keySet()) {
 
-                        if (filesToDownload.get(id).isItem) {
+                        if (filesToDownload.get(id).type == ContentsMeta.ContentsType.ITEM) {
                             File file = new File(id + ".html");
                             Log.d("UxDS", "Elimino archivo:"+file);
                             //noinspection ResultOfMethodCallIgnored
                             file.delete();
                         }
-                        else if (filesToDownload.get(id).isSection) {
+                        else if (filesToDownload.get(id).type == ContentsMeta.ContentsType.SECTION) {
                             File file = new File(id);
                             Log.d("UxDS", "Elimino directorio:"+file);
                             Utils.rmDir(file);
@@ -442,7 +491,7 @@ public class Contents {
 
             for (String id: toDownloadMeta.keySet()) {
                 if (downloadedMeta.containsKey(id) &&
-                        downloadedMeta.get(id).isItem == toDownloadMeta.get(id).isItem &&
+                        downloadedMeta.get(id).type == toDownloadMeta.get(id).type &&
                         downloadedMeta.get(id).size == toDownloadMeta.get(id).size) {
                     // el mismo item en ambas colecciones
                     // significa que tal item/section no debe actualizarse

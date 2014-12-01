@@ -1,37 +1,96 @@
 package ar.com.abimobileapps.uxds;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.telephony.TelephonyManager;
 
 import java.io.File;
 
-/**
- * Created by AMB on 29/11/2014.
- */
-public class Globals {
-
-    public Globals (){
-    }
+final class Globals {
+    private static volatile File appDir = null;
+    private static volatile String appId = null;
+    private static volatile String deviceId = null;
+    private static volatile AssetManager assetManager = null;
 
     static public String getSentryExtension() {
         return ".new";
     }
 
-    static public File getApplicationDir(Context c) {
-        return new File(c.getFilesDir() + "");
+    public static File appDir(Context context) {
+        if (appDir == null) {
+            synchronized (Globals.class) {
+                if (appDir == null) {
+                    // appDir
+                    appDir = new File(context.getFilesDir() + "");
+
+                    // appId
+                    appId = context.getResources().getString(R.string.app_id);
+
+                    // assetManager
+                    assetManager = context.getResources().getAssets();
+
+                    // deviceId
+                    TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+                    deviceId = telephonyManager.getDeviceId();
+                }
+            }
+        }
+        return appDir;
     }
 
-    static public File getTmpDir(Context c) {
-        return new File(c.getFilesDir() + "/tmp");
+    public static File tmpDir(Context context) {
+        File tmpDir = new File(appDir(context) + "/tmp");
+        return tmpDir;
     }
 
-    static public String getAppId(Context c) {
-        return c.getResources().getString(R.string.app_id);
+    public static File appDir() {
+        if (appDir == null) {
+            synchronized (Globals.class) {
+                if (appDir == null) {
+                    throw new RuntimeException("Necesita inicializarse antes de usar");
+                }
+            }
+        }
+        return appDir;
     }
 
-    static public String getIMEI(Context c) {
-        TelephonyManager telephonyManager = (TelephonyManager) c.getSystemService(Context.TELEPHONY_SERVICE);
-        return telephonyManager.getDeviceId();
+    public static File tmpDir() {
+        File tmpDir = new File(appDir() + "/tmp");
+        return tmpDir;
     }
 
+    static public String appId() {
+        if (appDir == null) {
+            synchronized (Globals.class) {
+                if (appDir == null) {
+                    throw new RuntimeException("Necesita inicializarse antes de usar");
+                }
+            }
+        }
+        return appId;
+    }
+
+    static public String deviceId() {
+        if (appDir == null) {
+            synchronized (Globals.class) {
+                if (appDir == null) {
+                    throw new RuntimeException("Necesita inicializarse antes de usar");
+                }
+            }
+        }
+        return deviceId;
+    }
+
+    static public AssetManager assetManager() {
+        if (appDir == null) {
+            synchronized (Globals.class) {
+                if (appDir == null) {
+                    throw new RuntimeException("Necesita inicializarse antes de usar");
+                }
+            }
+        }
+        return assetManager;
+    }
 }
+
+
