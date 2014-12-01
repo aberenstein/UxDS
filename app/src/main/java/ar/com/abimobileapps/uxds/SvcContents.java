@@ -1,19 +1,15 @@
 package ar.com.abimobileapps.uxds;
 
-import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.IBinder;
-import android.telephony.TelephonyManager;
-import android.widget.Toast;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.Calendar;
+import android.util.Log;
 
 public class SvcContents extends Service {
 
@@ -22,17 +18,25 @@ public class SvcContents extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        doWork();
+
+        Log.d("UxDS", "SvcContents.onStartCommand");
+        if (isNetworkAvailable()) {
+            String url = getResources().getString(R.string.contents_url);
+
+            Contents contents = new Contents();
+            // TODO: Crear un método Contents.CleanupTmp que borre archivos viejos e invocarlo acá
+            contents.getContentsFromServer(url, this);
+        }
+
         return Service.START_NOT_STICKY;
     }
 
-    private void doNotify()
+    public void doNotify()
     {
         String title = getResources().getString(R.string.app_name_status);
         String mssg = getResources().getString(R.string.mssg_status);
@@ -44,7 +48,9 @@ public class SvcContents extends Service {
                 notificationIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_ONE_SHOT);
 
+        //noinspection deprecation
         Notification notification = new Notification(R.drawable.status_icon, mssg_short, System.currentTimeMillis());
+        //noinspection deprecation
         notification.setLatestEventInfo(getApplicationContext(), title, mssg, pendingIntent);
         notification.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
 
@@ -52,31 +58,13 @@ public class SvcContents extends Service {
         notificationManager.notify(1, notification);
     }
 
-    private boolean doWork()
-    {
-        TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-        String deviceId = telephonyManager.getDeviceId();
-
-
-        doNotify();
-        return true;
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        // if no network is available networkInfo will be null
+        // otherwise check if we are connected
+        return (networkInfo != null && networkInfo.isConnected());
     }
-/// http://www.vogella.com/tutorials/AndroidServices/article.html#scehdulingservices
 
 }
 
-
-/*
-PARA HACER:
-
-3.- Algoritmo de actualización
-
-4.- Obtención de contenidos por http
-
-5.- Obtención inmediata por interacción con GUI
-
-6.- Señalización de 'Nuevo'
-
-
-
- */

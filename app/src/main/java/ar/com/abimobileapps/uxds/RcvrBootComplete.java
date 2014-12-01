@@ -5,13 +5,12 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.widget.Toast;
 
 import java.util.Calendar;
 
 public class RcvrBootComplete extends BroadcastReceiver {
 
-    private static final long REPEAT_TIME = 1000 * 30;
+    private static final long REPEAT_TIME = 1000 * 60 * 5;
 
     public RcvrBootComplete() {
     }
@@ -20,15 +19,13 @@ public class RcvrBootComplete extends BroadcastReceiver {
     {
         Intent intent = new Intent(context, RcvWakeup.class);
 
-        boolean alarmSet = (PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_NO_CREATE) != null);
-
-        return alarmSet;
+        return (PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_NO_CREATE) != null);
     }
 
     public void startAlarmSvc(Context context) {
 
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.SECOND, 30);
+        cal.add(Calendar.SECOND, 15);
         long startTimeMillis = cal.getTimeInMillis();
 
         Intent intent = new Intent(context, RcvWakeup.class);
