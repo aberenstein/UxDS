@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Fotos</title>
+    <style>
+        a:link {color:#ff0000;text-decoration:none;}
+        a:visited {color:#ff0000;text-decoration:none;}
+        a:hover {color:#ffcc00;text-decoration:none;}
+    </style>
+    <script src="file:///data/data/ar.com.abimobileapps.uxds/files/fotos/fotos.js"></script>
+    <script language="JavaScript">
+        var path = 'file:///data/data/ar.com.abimobileapps.uxds/files/fotos/';
+        var img = null;
+        var curr = -1;
+
+        function next()
+        {
+            curr++;
+            if (curr >= arr.length) curr = 0;
+
+            if (img != null)
+                img.src = path + arr[curr];
+        }
+
+        function prev()
+        {
+            curr--;
+            if (curr < 0) curr = arr.length - 1;
+
+            if (img != null)
+                img.src = path + arr[curr];
+        }
+
+        function setup()
+        {
+            img = document.getElementById('imagen');
+            next();
+        }
+    </script>
+</head>
+
+<body  onload="setup()">
+
+<table width="100%" border="0">
+    <tr valign="center">
+        <td align="center">
+            <a href="javascript:prev()"><img src="file:///data/data/ar.com.abimobileapps.uxds/files/arrow_prev.png" border="0" height="18" width="18" /> Anterior </a>&nbsp;&nbsp;<a href="javascript:next()"> Siguiente <img src="file:///data/data/ar.com.abimobileapps.uxds/files/arrow_next.png" border="0" height="18" width="18" /></a>
+        </td>
+    </tr>
+    <tr valign="center">
+        <td align="center">
+            <img id="imagen" style="max-width: 100%; height: auto" border="0" />
+        </td>
+    </tr>
+</table>
+
+</body>
+
+</html>

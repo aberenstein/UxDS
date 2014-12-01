@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Boletines</title>
+    <style>
+        a:link {color:#ff0000;text-decoration:none;}
+        a:visited {color:#ff0000;text-decoration:none;}
+        a:hover {color:#ffcc00;text-decoration:none;}
+    </style>
+    <script src="file:///data/data/ar.com.abimobileapps.uxds/files/boletines/boletines.js"></script>
+    <script language="JavaScript">
+        var path = 'file:///data/data/ar.com.abimobileapps.uxds/files/boletines/';
+
+        function setup()
+        {
+            for (var n = 0; n < arr.length; n++)
+            {
+                var entry = arr[n];
+                var arch = path + entry[0];
+                var fecha = entry[1];
+                var titulo = entry[2];
+
+                var table = document.getElementById("tabla");
+                var row = table.insertRow(1);
+                row.vAlign = 'top';
+                row.insertCell(0).innerHTML = '<a href="' + arch + '">' + fecha + '</a>';
+                row.insertCell(1).innerHTML = '<a href="' + arch + '">' + titulo + '</a>';
+            }
+        }
+    </script>
+</head>
+
+<body  onload="setup()">
+
+<table width="100%" border="1" id="tabla">
+    <tr valign="top">
+        <th width="1">Fecha</th>
+        <th>Título</th>
+    </tr>
+</table>
+
+</body>
+
+</html>

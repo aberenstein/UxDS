@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_id">UxDS</string>
+    <string name="app_name">Unidos por la Democracia Sindical</string>
+    <string name="app_name_short">UxDS</string>
+    <string name="app_name_status">UxDS</string>
+    <string name="mssg_status">Ha recibido un nuevo mensaje de Unidos por la Democracia Sindical.</string>
+    <string name="mssg_status_short">Nuevo mensaje de UxDS</string>
+    <string name="service_name_contents">uxds.contents</string>
+    <string name="service_name_notification">uxds.notification</string>
+    <!--string name="title_item_detail"></string-->
+    <!--string name="title_activity_splash_screen"></string-->
+    <!--string name="action_settings">Ajustes</string-->
+    <string name="copyright">(c) 2014 Abel Berenstein. Todos los derechos reservados.</string>
+    <string name="sin_contenido">Error al intentar cargar el contenido</string>
+    <string name="error_init">Error al inicializar la aplicación</string>
+    <string name="contents_url">http://abimobileapps.esy.es/uxds/</string>
+
+</resources>

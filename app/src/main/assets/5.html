@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>No est&aacute;s afiliado?</title>
+<script language="JavaScript">
+    function notNull(obj, errMsg)
+    {
+        val = obj.value;
+        if (val == null || val == '')
+        {
+            alert(errMsg);
+            return false;
+        }
+        else
+            return true;
+    }
+
+    function validate(form)
+    {
+        if (!notNull(form['nombres_apellido'], 'Debe completar nombres y apellido')) return false;
+        if (!notNull(form['domicilio'], 'Debe completar el domicilio')) return false;
+        if (!notNull(form['telefono'], 'Debe completar el teléfono')) return false;
+        if (!notNull(form['cuil'], 'Debe completar el CUIL')) return false;
+        if (!notNull(form['legajo'], 'Debe completar el legajo')) return false;
+        if (!notNull(form['fecha_ingreso'], 'Debe completar la fecha de ingreso')) return false;
+        if (!notNull(form['domicilio_laboral'], 'Debe completar el domicilio laboral')) return false;
+        if (!notNull(form['telefono_laboral'], 'Debe completar el teléfono laboral')) return false;
+        if (!notNull(form['email'], 'Debe completar el email')) return false;
+
+        return true;
+    }
+</script>
+</head>
+
+<body style="font-size: 75%">
+
+<p>
+    El sindicato es la herramienta que nos damos los trabajadores para la defensa de nuestros derechos y
+    la promoci&oacute;n de nuestros intereses.
+</p>
+<p>
+    Debe ser independiente del Estado, las patronales y los partidos pol&iacute;ticos. Se debe s&oacute;lo a los
+    trabajadores que representa, por lo tanto debe ser mantenido y financiado por los propios trabajadores.
+</p>
+<p>
+    Por eso es importante que te afilies. Para mantener y sostener tu organizaci&oacute;n sindical. Y para tener
+    voz y voto en la vida del sindicato, votar en las elecciones y participar plenamente y en la mayor medida
+    posible en los asuntos de tu sindicato. Ten&eacute; en cuenta que a&uacute;n si no est&aacute;s afiliado
+    el sindicato es tu representante legal.
+</p>
+<p>
+    Si no est&aacute;s afiliado te invitamos a afiliarte. Complet&aacute; este formulario y un militante de
+    Unidos se acercar&aacute; a tu oficina para que firmes la ficha de afiliación y acompañarte en el tr&aacute;mite
+    de afiliación al sindicato.
+</p>
+<p>
+    ¡Bienvenido!
+</p>
+
+<form name="form" action="http://abimobileapps.esy.es/uxds/mail.php" method="post" onsubmit="return validate(this)">
+
+<table border="0">
+    <tr>
+        <td align="right">Nombres y Apellido:</td><td align="left"><input type="text" name="nombres_apellido" /></td>
+    </tr>
+    <tr>
+        <td align="right">Domicilio:</td><td align="left"><input type="text" name="domicilio" /></td>
+    </tr>
+    <tr>
+        <td align="right">Tel&eacute;fono:</td><td align="left"><input type="text" name="telefono" /><br /></td>
+    </tr>
+    <tr>
+        <td align="right">CUIL:</td><td align="left"><input type="text" name="cuil" /></td>
+    </tr>
+    <tr>
+        <td align="right">Legajo:</td><td align="left"><input type="text" name="legajo" /></td>
+    </tr>
+    <tr>
+        <td align="right">Fecha de ingreso:</td><td align="left"><input type="text" name="fecha_ingreso" /></td>
+    </tr>
+    <tr>
+        <td align="right">Oficina/Secci&oacute;n:</td><td align="left"><input type="text" name="oficina_seccion" /></td>
+    </tr>
+    <tr>
+        <td align="right">Divisi&oacute;n:</td><td align="left"><input type="text" name="division" /></td>
+    </tr>
+    <tr>
+        <td align="right">Departamento:</td><td align="left"><input type="text" name="departamento" /></td>
+    </tr>
+    <tr>
+        <td align="right">Domicilio Laboral:</td><td align="left"><input type="text" name="domicilio_laboral" /></td>
+    </tr>
+    <tr>
+        <td align="right">Tel&eacute;fono Laboral:</td><td align="left"><input type="text" name="telefono_laboral" /></td>
+    </tr>
+    <tr>
+        <td align="right">Email:</td><td align="left"><input type="text" name="email" /></td>
+    </tr>
+</table>
+<p>
+    Grupo Familiar:<br />
+    Nombre y Apellido/DNI/Vínculo: <input type="text" name="familia_1"></input><br />
+    Nombre y Apellido/DNI/Vínculo: <input type="text" name="familia_2"></input><br />
+    Nombre y Apellido/DNI/Vínculo: <input type="text" name="familia_3"></input><br />
+    Nombre y Apellido/DNI/Vínculo: <input type="text" name="familia_4"></input><br />
+</p>
+    <br />
+    <input type="submit" name="Enviar" value="Enviar">
+</form>
+
+</body>
+
+</html>

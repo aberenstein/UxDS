@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ar.com.abimobileapps.uxds" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
+    <uses-permission  android:name="android.permission.GET_TASKS"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name_short"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="ar.com.abimobileapps.uxds.ItemListActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="ar.com.abimobileapps.uxds.ItemDetailActivity"
+            android:parentActivityName="ar.com.abimobileapps.uxds.ItemListActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ItemListActivity" />
+        </activity>
+        <activity
+            android:name="ar.com.abimobileapps.uxds.SplashScreenActivity" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name="ar.com.abimobileapps.uxds.SvcContents"
+            android:enabled="true"
+            android:exported="false"
+            android:icon="@drawable/ic_launcher"
+            android:label="@string/service_name_contents"
+            android:process=":svc_contents_process" >
+        </service>
+
+        <receiver
+            android:name="ar.com.abimobileapps.uxds.RcvrBootComplete"
+            android:enabled="true"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="ar.com.abimobileapps.uxds.RcvWakeup"
+            android:enabled="true"
+            android:exported="false" >
+        </receiver>
+    </application>
+
+</manifest>
