@@ -2,20 +2,23 @@
 <items>
     <item id="1" text="Quienes somos" size="1357" />
     <item id="2" text="AEFIP" size="3887" />
-    <item id="3" text="¿Sabías que...?" size="185" />
-    <item id="4" text="Zona Delegados" size="185" />
-    <item id="5" text="¿No estás afiliado?" size="4503" />
-    <item id="6" text="Eventos/Novedades" size="175" />
-    <item id="7" text="Boletines" size="1345" />
-    <item id="8" text="Fotos" size="1533" />
-    <item id="9" text="Contactános" size="1332" />
+    <item id="3" text="¿Sabías que...?" size="442" />
+    <item id="4" text="Zona Delegados" size="454" />
+    <item id="5" text="¿No estás afiliado?" size="4603" />
+    <item id="6" text="Eventos/Novedades" size="463" />
+    <item id="7" text="Boletines" size="1249" />
+    <item id="8" text="Fotos" size="1579" />
+    <item id="9" text="Contactános" size="1140" />
+    <resource id="arrow_next.png" size="3180" />
+    <resource id="arrow_prev.png" size="3209" />
     <resource id="email.jpg" size="1502" />
     <resource id="facebook.jpg" size="603" />
     <resource id="http.png" size="5155" />
     <resource id="twitter.png" size="734" />
-    <resource id="arrow_prev.png" size="3392" />
-    <resource id="arrow_next.png" size="3368" />
-    <section id="boletines" item="7" size="119329" />
+    <section id="sabiasque" item="3" size="11729" />
+    <section id="zonadelegados" item="4" size="10487" />
+    <section id="eventosnovedades" item="6" size="302860" />
+    <section id="boletines" item="7" size="2689311" />
     <section id="fotos" item="8" size="761897" />
 </items>
 

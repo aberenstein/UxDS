@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8" />
-<title>Eventos/Novedades</title>
+    <meta charset="UTF-8" />
+    <title>Zona Delegados</title>
+    <script language="JavaScript" src="./eventosnovedades/eventosnovedades.js"></script>
+    <script language="JavaScript">
+        var path = './eventosnovedades/';
+
+        function setup()
+        {
+            var loc = path + arr[0];
+            window.location.href = loc;
+        }
+    </script>
 </head>
-
-<body>
-No hay eventos ni novedades por el momento.
+<body onload="setup()">
 </body>
-
 </html>

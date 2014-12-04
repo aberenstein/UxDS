@@ -13,7 +13,11 @@ final class Globals {
     private static volatile AssetManager assetManager = null;
 
     static public String getSentryExtension() {
-        return ".new";
+        return "new";
+    }
+
+    static public String getLocalBroadcastName() {
+        return "refreshActivity";
     }
 
     public static File appDir(Context context) {

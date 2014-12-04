@@ -1,8 +1,10 @@
 package ar.com.abimobileapps.uxds;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.util.Xml;
 
@@ -10,19 +12,18 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.InvalidParameterException;
+import java.security.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -236,23 +237,37 @@ public class Contents {
         }
     }
 
+    static public void cleanupTmp()
+    {
+        File tmpDir = Globals.tmpDir();
+        File[] files = tmpDir.listFiles();
+        for (File file: files) {
+            if (file.isDirectory()) continue;
+            else {
+                long lastModified = file.lastModified();
+                long now = System.currentTimeMillis();
+                long monthMillis = 1000L * 3600L * 24L * 30L;
+                if ((now - lastModified) > monthMillis) {
+                    file.delete();
+                }
+            }
+        }
+    }
+
     /**
      * A partir item id devuelve si está señalado como nuevo o no
      */
     private boolean isItemNew(String id) {
         File applicationDir = Globals.appDir();
 
-        File[] fileList = applicationDir.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                boolean isFile = file.isFile();
-                boolean hasSentryExtension = Utils.getExtension(file.getAbsolutePath()).equalsIgnoreCase(Globals.getSentryExtension());
-                return isFile && hasSentryExtension;
-            }
-        });
+        File[] fileList = applicationDir.listFiles();
 
         for (File file: fileList) {
-            if (Utils.getFilename(file.getAbsolutePath()).equalsIgnoreCase(id)) {
+            if (file.isDirectory()) continue;
+
+            String name = Utils.getFilename(file.getAbsolutePath());
+            String ext = Utils.getExtension(file.getAbsolutePath());
+            if (name.equalsIgnoreCase(id) && ext.equalsIgnoreCase(Globals.getSentryExtension())) {
                 return true;
             }
         }
@@ -291,7 +306,7 @@ public class Contents {
                 Utils.unzip(applicationDir, tmpDir + "/" + filename);
                 try {
                     String itemId = getItemId(tmpDir, filename);
-                    File sentry = new File(applicationDir, itemId + Globals.getSentryExtension());
+                    File sentry = new File(applicationDir, itemId + "." + Globals.getSentryExtension());
                     setSentry(sentry);
                 }
                 catch (Exception ignore) {
@@ -308,11 +323,11 @@ public class Contents {
                 FileInputStream fis = new FileInputStream(tmpDir + "/" + filename);
                 FileOutputStream fos = new FileOutputStream(dest);
 
-                byte[] bites = new byte[1024];
+                Utils.copyFile(fis, fos);
 
-                for (int count = fis.read(bites); count != -1; count = fis.read(bites)) {
-                    fos.write(bites, 0, count);
-                }
+                fis.close();
+                fos.flush();
+                fos.close();
             }
         }
     }
@@ -383,11 +398,15 @@ public class Contents {
         protected void onPostExecute(Boolean newData) {
             if (newData) {
                 svc.doNotify();
+                refreshActivity();
+            }
+        }
 
-                if (Utils.isActivityRunning(ItemListActivity.class, svc)) {
-                    // TODO: invocar ItemListFragment.setupFragment para refrescar pantalla si esta activa y hubo nueva data
-                    //http://stackoverflow.com/questions/3873659/android-how-can-i-get-the-current-foreground-activity-from-a-service
-                }
+        private void refreshActivity() {
+            if (Utils.isActivityRunning(ItemListActivity.class, svc)) {
+                Intent intent = new Intent(Globals.getLocalBroadcastName());
+                LocalBroadcastManager.getInstance(svc).sendBroadcast(intent);
+                Log.d("UxDS", "sendBroadcast");
             }
         }
 
@@ -472,10 +491,7 @@ public class Contents {
                 return !filesToDownload.isEmpty();
             }
             catch (Exception e) {
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                e.printStackTrace(pw);
-                Log.d("UxDS", sw.toString());
+                Log.d("UxDS", Log.getStackTraceString(e));
                 return false;
             }
         }

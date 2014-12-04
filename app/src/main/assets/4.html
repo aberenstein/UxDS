@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8" />
-<title>Zona Delegados</title>
+    <meta charset="UTF-8" />
+    <title>Zona Delegados</title>
+    <script language="JavaScript" src="./zonadelegados/zonadelegados.js"></script>
+    <script language="JavaScript">
+        var path = './zonadelegados/';
+
+        function setup()
+        {
+            var loc = path + arr[0];
+            window.location.href = loc;
+        }
+    </script>
 </head>
-
-<body>
-No hay contenidos en esta secci&oacute;n por el momento.
+<body onload="setup()">
 </body>
-
 </html>

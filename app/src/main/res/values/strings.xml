@@ -13,7 +13,7 @@
     <!--string name="title_activity_splash_screen"></string-->
     <!--string name="action_settings">Ajustes</string-->
     <string name="copyright">(c) 2014 Abel Berenstein. Todos los derechos reservados.</string>
-    <string name="sin_contenido">Error al intentar cargar el contenido</string>
+    <string name="error_sin_contenido">Error al intentar cargar el contenido</string>
     <string name="error_init">Error al inicializar la aplicación</string>
     <string name="contents_url">http://abimobileapps.esy.es/uxds/</string>
 

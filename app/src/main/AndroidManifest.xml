@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
+    <!--suppress DeprecatedClassUsageInspection -->
     <uses-permission  android:name="android.permission.GET_TASKS"/>
 
     <application
@@ -39,8 +40,7 @@
             android:enabled="true"
             android:exported="false"
             android:icon="@drawable/ic_launcher"
-            android:label="@string/service_name_contents"
-            android:process=":svc_contents_process" >
+            android:label="@string/service_name_contents" >
         </service>
 
         <receiver

@@ -57,7 +57,7 @@ public class Utils {
             // write the files to the disk
 
             if (entry.isDirectory()) {
-                String dirName = entry.getName().replace("/", "");
+                String dirName = entry.getName().replaceAll("/+$", "");
                 File dir = new File(destDir + "/" + dirName);
                 if(dir.exists()) {
                     Utils.rmDir(dir);
@@ -65,20 +65,13 @@ public class Utils {
                 if (!dir.mkdirs()) throw new IOException(error_mkdir);
             }
             else {
-                final int BUFFER = 2048;
-                byte data[] = new byte[BUFFER];
-
                 File outputFile = new File(destDir + "/" + entry.getName());
                 FileOutputStream fos = new FileOutputStream(outputFile.getPath());
-                BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);
 
-                int count;
-                while ((count = zis.read(data, 0, BUFFER)) != -1) {
-                    dest.write(data, 0, count);
-                }
+                Utils.copyFile(zis, fos);
 
-                dest.flush();
-                dest.close();
+                fos.flush();
+                fos.close();
             }
         }
 
@@ -87,21 +80,22 @@ public class Utils {
 
     static public String getExtension(String pathname)
     {
-        String[] pathElements = pathname.split("/");
-        String pathLastElement = pathElements[pathElements.length-1];
-        String[] filenameElements = pathLastElement.split("\\.");
-        return (filenameElements.length > 1? filenameElements[filenameElements.length-1]: "");
+        String filename = new File(pathname).getName();
+        String extension = "";
+        int pos = filename.lastIndexOf(".");
+        if (pos > 0) {
+            extension = filename.substring(pos + 1, filename.length());
+        }
+        return extension;
     }
 
     static public String getFilename(String pathname)
     {
-        String[] pathElements = pathname.split("/");
-        String pathLastElement = pathElements[pathElements.length-1];
-        String[] filenameElements = pathLastElement.split("\\.");
-        String lastElement = filenameElements[filenameElements.length-1];
-        String extension = (filenameElements.length > 1? filenameElements[filenameElements.length-1]: "");
-        int end = lastElement.length() - extension.length() - 1;
-        String filename = filenameElements[filenameElements.length-1].substring(0, end);
+        String filename = new File(pathname).getName();
+        int pos = filename.lastIndexOf(".");
+        if (pos > 0) {
+            filename = filename.substring(0, pos);
+        }
         return filename;
     }
 

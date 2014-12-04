@@ -1,9 +1,15 @@
 package ar.com.abimobileapps.uxds;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.app.ListFragment;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +32,16 @@ import java.util.List;
 public class ItemListFragment extends ListFragment {
 
     private Contents contents = null;
+
     private SpecialAdapter adapter = null;
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("UxDS", "onReceive");
+            setupFragment();
+        }
+    };
 
     /**
      * The serialization (saved instance state) Bundle key representing the
@@ -77,6 +92,9 @@ public class ItemListFragment extends ListFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(
+                mMessageReceiver,
+                new IntentFilter(Globals.getLocalBroadcastName()));
     }
 
     @Override
@@ -85,30 +103,20 @@ public class ItemListFragment extends ListFragment {
         setupFragment();
     }
 
-    public void setupFragment() {
+    private void setupFragment() {
         contents = new Contents(this.getActivity());
         if (contents.ITEMS.size() == 0) {
-            Toast.makeText(getActivity().getApplicationContext(), R.string.sin_contenido, Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity().getApplicationContext(), R.string.error_sin_contenido, Toast.LENGTH_LONG).show();
             getActivity().finish();
         }
 
-        boolean isAnythingNew = false;
-        for (Contents.ContentsItem contentsItem: contents.ITEMS) {
-            if (contentsItem.flag) {
-                isAnythingNew = true;
-                break;
-            }
-        }
+        adapter = new SpecialAdapter(
+                getActivity(),
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1,
+                contents.ITEMS);
 
-        if (adapter == null || isAnythingNew) {
-            adapter = new SpecialAdapter(
-                    getActivity(),
-                    android.R.layout.simple_list_item_activated_1,
-                    android.R.id.text1,
-                    contents.ITEMS);
-
-            setListAdapter(adapter);
-        }
+        setListAdapter(adapter);
     }
 
     static class ViewHolder {
@@ -144,6 +152,7 @@ public class ItemListFragment extends ListFragment {
         }
 
         //A view to hold each row in the list
+        @SuppressLint("InflateParams")
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             // A ViewHolder keeps references to children views to avoid unneccessary calls
@@ -160,14 +169,12 @@ public class ItemListFragment extends ListFragment {
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
+
+            int visibility = objects.get(position).flag? View.VISIBLE: View.INVISIBLE;
+
             // Bind the data efficiently with the holder.
             holder.text.setText(objects.get(position).toString());
-            if (objects.get(position).flag) {
-                holder.flag.setVisibility(View.VISIBLE);
-            }
-            else {
-                holder.flag.setVisibility(View.INVISIBLE);
-            }
+            holder.flag.setVisibility(visibility);
 
             //Set the background color depending of  odd/even colorPos result
             int colorPos = position % colors.length;

@@ -25,11 +25,14 @@ public class SvcContents extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         Log.d("UxDS", "SvcContents.onStartCommand");
+
+        // Borra archivos de más de un mes en tmp
+        Contents.cleanupTmp();
+
         if (isNetworkAvailable()) {
             String url = getResources().getString(R.string.contents_url);
 
             Contents contents = new Contents();
-            // TODO: Crear un método Contents.CleanupTmp que borre archivos viejos e invocarlo acá
             contents.getContentsFromServer(url, this);
         }
 
