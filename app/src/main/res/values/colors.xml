@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="list_dark">#AA959595</color>
-    <color name="list_light">#AA929292</color>
+    <color name="list_dark">#AAA0A0A0</color>
+    <color name="list_light">#AA979797</color>
 </resources>
