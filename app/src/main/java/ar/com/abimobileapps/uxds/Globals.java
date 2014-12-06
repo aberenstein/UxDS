@@ -43,56 +43,21 @@ final class Globals {
     }
 
     public static File tmpDir(Context context) {
-        File tmpDir = new File(appDir(context) + "/tmp");
-        return tmpDir;
+        return new File(appDir(context) + "/tmp");
     }
 
-    public static File appDir() {
-        if (appDir == null) {
-            synchronized (Globals.class) {
-                if (appDir == null) {
-                    throw new RuntimeException("Necesita inicializarse antes de usar");
-                }
-            }
-        }
-        return appDir;
-    }
-
-    public static File tmpDir() {
-        File tmpDir = new File(appDir() + "/tmp");
-        return tmpDir;
-    }
-
-    static public String appId() {
-        if (appDir == null) {
-            synchronized (Globals.class) {
-                if (appDir == null) {
-                    throw new RuntimeException("Necesita inicializarse antes de usar");
-                }
-            }
-        }
+    static public String appId(Context context) {
+        appDir(context);
         return appId;
     }
 
-    static public String deviceId() {
-        if (appDir == null) {
-            synchronized (Globals.class) {
-                if (appDir == null) {
-                    throw new RuntimeException("Necesita inicializarse antes de usar");
-                }
-            }
-        }
+    static public String deviceId(Context context) {
+        appDir(context);
         return deviceId;
     }
 
-    static public AssetManager assetManager() {
-        if (appDir == null) {
-            synchronized (Globals.class) {
-                if (appDir == null) {
-                    throw new RuntimeException("Necesita inicializarse antes de usar");
-                }
-            }
-        }
+    static public AssetManager assetManager(Context context) {
+        appDir(context);
         return assetManager;
     }
 }

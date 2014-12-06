@@ -1,8 +1,10 @@
 package ar.com.abimobileapps.uxds;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -21,9 +23,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.InvalidParameterException;
-import java.security.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +35,8 @@ import ar.com.abimobileapps.Utils;
  */
 public class Contents {
 
+    Context context;
+
     /**
      * An array of items.
      */
@@ -45,15 +47,12 @@ public class Contents {
      */
     public Map<String, ContentsItem> ITEM_MAP = new HashMap<String, ContentsItem>();
 
-    public Contents() {
-    }
-
-    public Contents(Activity callingActivity)
+    public Contents(Context context)
     {
         XmlPullParser parser = Xml.newPullParser();
 
         try {
-            File applicationDir = Globals.appDir(callingActivity);
+            File applicationDir = Globals.appDir(context);
             File items = new File(applicationDir, "items.xml");
             InputStream is = new FileInputStream(items.getAbsoluteFile());
 
@@ -166,7 +165,7 @@ public class Contents {
     }
 
     private void fsSetup() throws IOException {
-        File applicationDir = Globals.appDir();
+        File applicationDir = Globals.appDir(context);
 
         try {
             // Verifico si hay fs en internal storage
@@ -181,7 +180,7 @@ public class Contents {
         }
 
         // 1.- Creo el subdirectorio tmp
-        File tmpDir = Globals.tmpDir();
+        File tmpDir = Globals.tmpDir(context);
         if(tmpDir.exists()) {
             Utils.rmDir(tmpDir);
         }
@@ -195,8 +194,8 @@ public class Contents {
     }
 
     private void copyAssets() throws IOException {
-        File destDir = Globals.tmpDir();
-        AssetManager am = Globals.assetManager();
+        File destDir = Globals.tmpDir(context);
+        AssetManager am = Globals.assetManager(context);
         String[] fileList = am.list("");
 
         for(String filename : fileList) {
@@ -237,17 +236,17 @@ public class Contents {
         }
     }
 
-    static public void cleanupTmp()
+    public void cleanupTmp()
     {
-        File tmpDir = Globals.tmpDir();
+        File tmpDir = Globals.tmpDir(context);
         File[] files = tmpDir.listFiles();
         for (File file: files) {
-            if (file.isDirectory()) continue;
-            else {
+            if (!file.isDirectory()) {
                 long lastModified = file.lastModified();
                 long now = System.currentTimeMillis();
                 long monthMillis = 1000L * 3600L * 24L * 30L;
                 if ((now - lastModified) > monthMillis) {
+                    //noinspection ResultOfMethodCallIgnored
                     file.delete();
                 }
             }
@@ -258,7 +257,7 @@ public class Contents {
      * A partir item id devuelve si está señalado como nuevo o no
      */
     private boolean isItemNew(String id) {
-        File applicationDir = Globals.appDir();
+        File applicationDir = Globals.appDir(context);
 
         File[] fileList = applicationDir.listFiles();
 
@@ -303,7 +302,10 @@ public class Contents {
 
             if (extension.equalsIgnoreCase("zip")) {
                 // es archivo comprimido, lo expando
-                Utils.unzip(applicationDir, tmpDir + "/" + filename);
+                File src = new File(tmpDir, filename);
+                Utils.unzip(applicationDir, src);
+                //noinspection ResultOfMethodCallIgnored
+                src.delete();
                 try {
                     String itemId = getItemId(tmpDir, filename);
                     File sentry = new File(applicationDir, itemId + "." + Globals.getSentryExtension());
@@ -313,21 +315,10 @@ public class Contents {
                 }
             }
             else {
+                // no es archivo comprimido, simplemente lo muevo
+                File src = new File(tmpDir, filename);
                 File dest = new File(applicationDir, filename);
-                if (dest.exists()) {
-                    //noinspection ResultOfMethodCallIgnored
-                    dest.delete();
-                }
-
-                // no es archivo comprimido, simplemente lo copio
-                FileInputStream fis = new FileInputStream(tmpDir + "/" + filename);
-                FileOutputStream fos = new FileOutputStream(dest);
-
-                Utils.copyFile(fis, fos);
-
-                fis.close();
-                fos.flush();
-                fos.close();
+                Utils.moveFile(src, dest);
             }
         }
     }
@@ -372,14 +363,14 @@ public class Contents {
         return contentsMeta;
     }
 
-    public void getContentsFromServer(String url, SvcContents svc) {
+    public void getContentsFromServer(String url) {
 
-        DownloadTask downloadTask = new DownloadTask(svc);
-        downloadTask.execute(Globals.appDir(svc).getAbsolutePath(),
-                             Globals.tmpDir(svc).getAbsolutePath(),
+        DownloadTask downloadTask = new DownloadTask(context);
+        downloadTask.execute(Globals.appDir(context).getAbsolutePath(),
+                             Globals.tmpDir(context).getAbsolutePath(),
                              url,
-                             Globals.appId(),
-                             Globals.deviceId());
+                             Globals.appId(context),
+                             Globals.deviceId(context));
     }
 
     // Uses AsyncTask to create a task away from the main UI thread. This task takes a
@@ -388,24 +379,35 @@ public class Contents {
     // an InputStream. Finally, the InputStream is converted into a string, which is
     // displayed in the UI by the AsyncTask's onPostExecute method.
     private class DownloadTask extends AsyncTask<String, Void, Boolean> {
-        SvcContents svc;
+        Context context;
 
-        public DownloadTask(SvcContents svc) {
-            this.svc = svc;
+        public DownloadTask(Context context) {
+            this.context = context;
         }
 
         @Override
         protected void onPostExecute(Boolean newData) {
             if (newData) {
-                svc.doNotify();
+                Resources res = context.getResources();
+                String title = res.getString(R.string.app_name_status);
+                String mssg = res.getString(R.string.mssg_status);
+                String mssg_short = res.getString(R.string.mssg_status_short);
+                int status_icon_id = R.drawable.status_icon;
+
+                Utils.doNotify(context,
+                        title,
+                        mssg,
+                        mssg_short,
+                        status_icon_id);
+
                 refreshActivity();
             }
         }
 
         private void refreshActivity() {
-            if (Utils.isActivityRunning(ItemListActivity.class, svc)) {
+            if (Utils.isActivityRunning(ItemListActivity.class, context)) {
                 Intent intent = new Intent(Globals.getLocalBroadcastName());
-                LocalBroadcastManager.getInstance(svc).sendBroadcast(intent);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                 Log.d("UxDS", "sendBroadcast");
             }
         }
@@ -452,7 +454,7 @@ public class Contents {
                     }
 
                     Log.d("UxDS", "Pongo los archivos descargados online.");
-                    Contents contents = new Contents();
+                    Contents contents = new Contents(context);
                     contents.fsUpdate(new File(applicationDir), new File(tmpDir));
                 }
                 else {

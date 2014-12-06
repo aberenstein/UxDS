@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.app.Activity;
-import android.util.Log;
 
 import java.io.File;
 
@@ -84,7 +83,7 @@ public class ItemListActivity extends Activity
     }
 
     private void removeSentry(String id) {
-        File sentry = new File(Globals.appDir(), id + "." + Globals.getSentryExtension());
+        File sentry = new File(Globals.appDir(this), id + "." + Globals.getSentryExtension());
         Contents.removeSentry(sentry);
     }
 }

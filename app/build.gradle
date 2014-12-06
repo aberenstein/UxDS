@@ -7,13 +7,14 @@ android {
         applicationId "ar.com.abimobileapps.uxds"
         minSdkVersion 15
         targetSdkVersion 20
-        versionCode 2
-        versionName '2.0'
+        versionCode 4
+        versionName '2.2'
     }
     buildTypes {
         release {
-            runProguard false
+            runProguard true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFile 'C:/development/workspace/android/UxDS/app/proguard-rules.pro'
         }
     }
     productFlavors {
@@ -22,6 +23,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:support-v4:21.0.0'
 }

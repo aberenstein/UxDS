@@ -102,15 +102,6 @@ public class ItemDetailFragment extends Fragment {
 
     public boolean onBackPressed() {
         return false;
-        /*
-        if (webview.copyBackForwardList().getCurrentIndex() > 0) {
-            webview.goBack();
-            return true;
-        }
-        else {
-            return false;
-        }
-        */
     }
 
     private class HelloWebViewClient extends WebViewClient {

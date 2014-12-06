@@ -33,8 +33,6 @@ public class ItemListFragment extends ListFragment {
 
     private Contents contents = null;
 
-    private SpecialAdapter adapter = null;
-
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -110,7 +108,7 @@ public class ItemListFragment extends ListFragment {
             getActivity().finish();
         }
 
-        adapter = new SpecialAdapter(
+        SpecialAdapter adapter = new SpecialAdapter(
                 getActivity(),
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
