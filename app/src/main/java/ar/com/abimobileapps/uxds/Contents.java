@@ -158,13 +158,13 @@ public class Contents {
 
         // Setup alarmas
         RcvrBootComplete rcvr = new RcvrBootComplete();
-        if (!rcvr.isAlarmSet(callingActivity.getApplicationContext())) {
-            rcvr.startAlarmSvc(callingActivity.getApplicationContext());
+        if (!rcvr.isAlarmSet(callingActivity)) {
+            rcvr.startAlarmSvc(callingActivity);
         }
 
     }
 
-    private void fsSetup() throws IOException {
+    private synchronized void fsSetup() throws IOException {
         File applicationDir = Globals.appDir(context);
 
         try {
@@ -190,7 +190,7 @@ public class Contents {
         copyAssets();
 
         // 3.- Expando el directorio tmpDir en applicationDir
-        fsUpdate(applicationDir, tmpDir);
+        fsUpdate();
     }
 
     private void copyAssets() throws IOException {
@@ -236,7 +236,7 @@ public class Contents {
         }
     }
 
-    public void cleanupTmp()
+    public synchronized void cleanupTmp()
     {
         File tmpDir = Globals.tmpDir(context);
         File[] files = tmpDir.listFiles();
@@ -293,7 +293,10 @@ public class Contents {
         throw new InvalidParameterException();
     }
 
-    public void fsUpdate(File applicationDir, File tmpDir) throws IOException {
+    public synchronized void fsUpdate() throws IOException {
+        File applicationDir = Globals.appDir(context);
+        File tmpDir = Globals.tmpDir(context);
+
         String[] fileList = tmpDir.list();
 
         for(String filename : fileList) {
@@ -324,40 +327,45 @@ public class Contents {
     }
 
     private Map<String,ContentsMeta> parseItems(File items) throws IOException, XmlPullParserException {
+
         HashMap<String,ContentsMeta> contentsMeta = new HashMap<String,ContentsMeta>();
 
-        XmlPullParser parser = Xml.newPullParser();
+        if (items.exists()) {
 
-        InputStream is =  new FileInputStream(items);
-        parser.setInput(is, "UTF-8");
+            XmlPullParser parser = Xml.newPullParser();
 
-        for (int eventType = parser.getEventType(); eventType != XmlPullParser.END_DOCUMENT; eventType = parser.next()) {
-            switch (eventType) {
-                case XmlPullParser.START_TAG:
-                    if (parser.getName().equalsIgnoreCase("item")) {
-                        String id = parser.getAttributeValue(0);
-                        int size = Integer.parseInt(parser.getAttributeValue(2));
-                        ContentsMeta itemMeta = new ContentsMeta(id, size, isItemNew(id));
-                        contentsMeta.put(id, itemMeta);
-                    }
-                    else if (parser.getName().equalsIgnoreCase("section")) {
-                        String id = parser.getAttributeValue(0);
-                        String item = parser.getAttributeValue(1);
-                        int size = Integer.parseInt(parser.getAttributeValue(2));
-                        ContentsMeta itemMeta = new ContentsMeta(id, item, size);
-                        contentsMeta.put(id, itemMeta);
-                    }
-                    else if (parser.getName().equalsIgnoreCase("resource")) {
-                        String id = parser.getAttributeValue(0);
-                        int size = Integer.parseInt(parser.getAttributeValue(1));
-                        ContentsMeta itemMeta = new ContentsMeta(id, size);
-                        contentsMeta.put(id, itemMeta);
-                    }
-                    break;
+            InputStream is =  new FileInputStream(items);
+            parser.setInput(is, "UTF-8");
 
-                default:
-                    break;
+            for (int eventType = parser.getEventType(); eventType != XmlPullParser.END_DOCUMENT; eventType = parser.next()) {
+                switch (eventType) {
+                    case XmlPullParser.START_TAG:
+                        if (parser.getName().equalsIgnoreCase("item")) {
+                            String id = parser.getAttributeValue(0);
+                            int size = Integer.parseInt(parser.getAttributeValue(2));
+                            ContentsMeta itemMeta = new ContentsMeta(id, size, isItemNew(id));
+                            contentsMeta.put(id, itemMeta);
+                        }
+                        else if (parser.getName().equalsIgnoreCase("section")) {
+                            String id = parser.getAttributeValue(0);
+                            String item = parser.getAttributeValue(1);
+                            int size = Integer.parseInt(parser.getAttributeValue(2));
+                            ContentsMeta itemMeta = new ContentsMeta(id, item, size);
+                            contentsMeta.put(id, itemMeta);
+                        }
+                        else if (parser.getName().equalsIgnoreCase("resource")) {
+                            String id = parser.getAttributeValue(0);
+                            int size = Integer.parseInt(parser.getAttributeValue(1));
+                            ContentsMeta itemMeta = new ContentsMeta(id, size);
+                            contentsMeta.put(id, itemMeta);
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
             }
+
         }
 
         return contentsMeta;
@@ -414,6 +422,15 @@ public class Contents {
 
         @Override
         protected Boolean doInBackground(String... param) {
+            /*
+            Actualización de contenido
+            1.- Obtengo items.xml del servidor
+            2.- Leo items.xml de applicationDir y comparo. Obtengo filesToDownload y filesToDelete. Considerar el caso de que no exista items.xml en applicationDir.
+            3.- Descargo el contenido de filesToDownload sobre tmpDir, si todavía no existe en tmpDir.
+            4.- Muevo los archivos descargados en tmpDir sobre applicationDir. Si son comprimidos los expando y elimino el archivo comprimido de tmpDir.
+            5.- Elimino de applicationDir los archivos y subdirectorios contenidos en filesToDelete.
+            */
+
             String applicationDir = param[0];
             String tmpDir = param[1];
             String url = param[2];
@@ -427,6 +444,9 @@ public class Contents {
 
                 Log.d("UxDS", "Obtengo el Map filesToDownload");
                 Map<String,ContentsMeta> filesToDownload = getFilesToDownload(applicationDir, tmpDir);
+
+                Log.d("UxDS", "Obtengo el Map filesToDelete");
+                Map<String,ContentsMeta> filesToDelete = getFilesToDelete(applicationDir, tmpDir);
 
                 if (!filesToDownload.isEmpty()) {
                     Log.d("UxDS", "Itero sobre filesToDownload");
@@ -455,14 +475,12 @@ public class Contents {
 
                     Log.d("UxDS", "Pongo los archivos descargados online.");
                     Contents contents = new Contents(context);
-                    contents.fsUpdate(new File(applicationDir), new File(tmpDir));
+                    contents.fsUpdate();
                 }
                 else {
                     Log.d("UxDS", "filesToDownload es vacío");
                 }
 
-                Log.d("UxDS", "Obtengo el Map filesToDelete");
-                Map<String,ContentsMeta> filesToDelete = getFilesToDelete(applicationDir, tmpDir);
                 if (!filesToDelete.isEmpty()) {
                     Log.d("UxDS", "Itero sobre filesToDelete");
                     for (String id : filesToDelete.keySet()) {
@@ -499,6 +517,7 @@ public class Contents {
         }
 
         private Map<String,ContentsMeta> getFilesToDownload(String applicationDir, String tmpDir) throws IOException, XmlPullParserException {
+
             File itemsDownloaded = new File (applicationDir + "/items.xml");
             File itemsToDownload = new File (tmpDir + "/items.xml");
 
@@ -528,6 +547,7 @@ public class Contents {
         }
 
         private Map<String,ContentsMeta> getFilesToDelete(String applicationDir, String tmpDir) throws IOException, XmlPullParserException {
+
             File itemsDownloaded = new File (applicationDir + "/items.xml");
             File itemsToDownload = new File (tmpDir + "/items.xml");
 
