@@ -228,7 +228,7 @@ public class Contents {
         }
     }
 
-    static public void removeSentry(File sentry)
+    static public synchronized void removeSentry(File sentry)
     {
         if (sentry.exists()) {
             //noinspection ResultOfMethodCallIgnored
