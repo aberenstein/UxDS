@@ -49,6 +49,8 @@ public class Contents {
 
     public Contents(Context context)
     {
+        this.context = context;
+
         XmlPullParser parser = Xml.newPullParser();
 
         try {
@@ -191,6 +193,10 @@ public class Contents {
 
         // 3.- Expando el directorio tmpDir en applicationDir
         fsUpdate();
+
+        // 4.- Elimino los archivos .new en applicationDir
+        removeSentries();
+
     }
 
     private void copyAssets() throws IOException {
@@ -233,6 +239,18 @@ public class Contents {
         if (sentry.exists()) {
             //noinspection ResultOfMethodCallIgnored
             sentry.delete();
+        }
+    }
+
+    private void removeSentries()
+    {
+        File appDir = Globals.appDir(context);
+        File[] files = appDir.listFiles();
+        for (File file: files) {
+            if (!file.isDirectory() && Utils.getExtension(file.getName()).equalsIgnoreCase("new")) {
+                //noinspection ResultOfMethodCallIgnored
+                file.delete();
+            }
         }
     }
 
@@ -306,6 +324,7 @@ public class Contents {
             if (extension.equalsIgnoreCase("zip")) {
                 // es archivo comprimido, lo expando
                 File src = new File(tmpDir, filename);
+                Log.d("UxDS", "unzipping " + src.getName());
                 Utils.unzip(applicationDir, src);
                 //noinspection ResultOfMethodCallIgnored
                 src.delete();
@@ -317,13 +336,18 @@ public class Contents {
                 catch (Exception ignore) {
                 }
             }
-            else {
+            else if (!filename.equalsIgnoreCase("items.xml")) {
                 // no es archivo comprimido, simplemente lo muevo
                 File src = new File(tmpDir, filename);
                 File dest = new File(applicationDir, filename);
                 Utils.moveFile(src, dest);
             }
         }
+
+        String filename = "items.xml";
+        File src = new File(tmpDir, filename);
+        File dest = new File(applicationDir, filename);
+        Utils.moveFile(src, dest);
     }
 
     private Map<String,ContentsMeta> parseItems(File items) throws IOException, XmlPullParserException {
@@ -372,7 +396,6 @@ public class Contents {
     }
 
     public void getContentsFromServer(String url) {
-
         DownloadTask downloadTask = new DownloadTask(context);
         downloadTask.execute(Globals.appDir(context).getAbsolutePath(),
                              Globals.tmpDir(context).getAbsolutePath(),

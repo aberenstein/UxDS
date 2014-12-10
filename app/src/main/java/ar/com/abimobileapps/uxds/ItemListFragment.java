@@ -102,7 +102,7 @@ public class ItemListFragment extends ListFragment {
     }
 
     private void setupFragment() {
-        contents = new Contents(this.getActivity());
+        contents = new Contents(this.getActivity().getApplicationContext());
         if (contents.ITEMS.size() == 0) {
             Toast.makeText(getActivity().getApplicationContext(), R.string.error_sin_contenido, Toast.LENGTH_LONG).show();
             getActivity().finish();

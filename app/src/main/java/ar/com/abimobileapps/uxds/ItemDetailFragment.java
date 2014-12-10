@@ -55,7 +55,7 @@ public class ItemDetailFragment extends Fragment {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            Contents contents = new Contents(getActivity());
+            Contents contents = new Contents(getActivity().getApplicationContext());
             mItem = contents.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
         }
     }
@@ -100,8 +100,17 @@ public class ItemDetailFragment extends Fragment {
         return rootView;
     }
 
+    int webview_prev_index = 0;
+
     public boolean onBackPressed() {
-        return false;
+        if (webview.copyBackForwardList().getCurrentIndex() > 0 && webview_prev_index != webview.copyBackForwardList().getCurrentIndex()) {
+            webview_prev_index = webview.copyBackForwardList().getCurrentIndex();
+            webview.goBack();
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     private class HelloWebViewClient extends WebViewClient {

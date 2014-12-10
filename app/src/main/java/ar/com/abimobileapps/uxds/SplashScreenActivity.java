@@ -48,7 +48,7 @@ public class SplashScreenActivity extends Activity {
         timer.schedule(task, SPLASH_SCREEN_DELAY);
 
         try {
-            Contents contents = new Contents(this);
+            Contents contents = new Contents(getApplicationContext());
             contents.initialize(this);
         }
         catch (Exception e) {

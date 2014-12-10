@@ -22,7 +22,7 @@ public class SvcContents extends Service {
 
         Log.d("UxDS", "SvcContents.onStartCommand");
 
-        Contents contents = new Contents(this);
+        Contents contents = new Contents(getApplicationContext());
 
         // Borra archivos de más de un mes en tmp
         contents.cleanupTmp();
