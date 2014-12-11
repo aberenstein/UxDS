@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8" />
-<title>Boletines</title>
-    <style>
+  <meta charset="UTF-8" />
+  <title>Boletines</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <style>
         a:link {color:#ff0000;text-decoration:none;}
         a:visited {color:#ff0000;text-decoration:none;}
         a:hover {color:#ffcc00;text-decoration:none;}
-    </style>
-    <script src="./boletines/boletines.js"></script>
-    <script language="JavaScript">
+  </style>
+  <script src="./boletines/boletines.js"></script>
+  <script language="JavaScript">
         var path = './boletines/';
 
         function setup()
@@ -28,12 +29,12 @@
                 row.insertCell(1).innerHTML = '<a href="' + arch + '">' + titulo + '</a>';
             }
         }
-    </script>
+  </script>
 </head>
 
 <body  onload="setup()">
 
-<table width="100%" border="1" id="tabla">
+<table width="100%" border="1" id="tabla" style="border-collapse:collapse;border:1px solid black;" cellpadding="4">
     <tr valign="top">
         <th width="1">Fecha</th>
         <th>Título</th>

@@ -340,6 +340,7 @@ public class Contents {
                 // no es archivo comprimido, simplemente lo muevo
                 File src = new File(tmpDir, filename);
                 File dest = new File(applicationDir, filename);
+                Log.d("UxDS", "moviendo " + src.getName());
                 Utils.moveFile(src, dest);
             }
         }
@@ -347,6 +348,7 @@ public class Contents {
         String filename = "items.xml";
         File src = new File(tmpDir, filename);
         File dest = new File(applicationDir, filename);
+        Log.d("UxDS", "moviendo " + src.getName());
         Utils.moveFile(src, dest);
     }
 
@@ -487,12 +489,12 @@ public class Contents {
                         Log.d("UxDS", "Archivo a descargar:"+file);
 
                         File pathname = new File(tmpDir, file);
-                        if (pathname.exists() && pathname.length() != filesToDownload.get(id).size) {
-                            Log.d("UxDS", "No lo tengo. Lo descargo.");
-                            downloadToTmp(file, tmpDir, url, appid, imei);
+                        if (pathname.exists() && pathname.length() == filesToDownload.get(id).size) {
+                            Log.d("UxDS", "Ya lo tengo. No lo descargo.");
                         }
                         else {
-                            Log.d("UxDS", "Ya lo tengo. No lo descargo.");
+                            Log.d("UxDS", "No lo tengo. Lo descargo.");
+                            downloadToTmp(file, tmpDir, url, appid, imei);
                         }
                     }
 
